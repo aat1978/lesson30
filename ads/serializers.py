@@ -32,3 +32,10 @@ class AdListSerializer(ModelSerializer):
     class Meta:
         model = Ad
         fields = "__all__"
+
+
+class SelectionSerializer(ModelSerializer):
+    class Meta:
+        model = Selection
+        fields = "__all__"
+        

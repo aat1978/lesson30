@@ -100,6 +100,12 @@ class AdViewSet(ModelViewSet):
     serializers = {"retrieve": AdDetailSerializer,
                    "list": AdListSerializer}
 
+    default_permission = [AllowAny]
+    permissions = {"retrieve": [IsAuthenticated]}
+
+    def get_permissions(self):
+        return [permission() for permission in self.permissions.get(self.action, self.default_permission)]
+
     def get_serializer_class(self):
         return self.serializers.get(self.action, self.default_serializer)
 
@@ -125,3 +131,8 @@ class AdViewSet(ModelViewSet):
             self.queryset = self.queryset.filter(price__lte=price_to)
 
         return super().list(request, *args, **kwargs)
+
+
+class SelectionViewSet(ModelViewSet):
+    serializer_class = SelectionSerialiser
+    queryset = Selection.objects.all()
