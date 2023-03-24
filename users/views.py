@@ -11,7 +11,7 @@ class UserPagination(PageNumberPagination):
 
 
 class UserCreateView(CreateAPIView):
-    serializer_class = UserSerializer
+    serializer_class = UserCreateSerializer
     queryset = User.objects.all()
 
 
