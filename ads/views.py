@@ -3,10 +3,13 @@ from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views import generic
 from django.views.decorators.csrf import csrf_exempt
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
 
-from ads.models import Category, Ad
-from ads.serializers import AdSerializer, AdDetailSerializer, AdListSerializer
+from ads.models import Category, Ad, Selection
+from ads.permissions import IsOwner, IsStaff
+from ads.serializers import AdSerializer, AdDetailSerializer, AdListSerializer, SelectionSerializer, \
+    SelectionCreateSerializer
 
 
 def root(request):
@@ -98,10 +101,14 @@ class AdViewSet(ModelViewSet):
     default_serializer = AdSerializer
     queryset = Ad.objects.order_by("-price")
     serializers = {"retrieve": AdDetailSerializer,
-                   "list": AdListSerializer}
+                   "list": AdListSerializer
+                   }
 
     default_permission = [AllowAny]
-    permissions = {"retrieve": [IsAuthenticated]}
+    permissions = {"retrieve": [IsAuthenticated],
+                   "update": [IsAuthenticated, IsOwner | IsStaff],
+                   "partial_update": [IsAuthenticated, IsOwner | IsStaff],
+                   "destroy": [IsAuthenticated, IsOwner | IsStaff]}
 
     def get_permissions(self):
         return [permission() for permission in self.permissions.get(self.action, self.default_permission)]
@@ -134,5 +141,20 @@ class AdViewSet(ModelViewSet):
 
 
 class SelectionViewSet(ModelViewSet):
-    serializer_class = SelectionSerialiser
     queryset = Selection.objects.all()
+
+    default_permission = [AllowAny]
+    permissions = {"create": [IsAuthenticated],
+                   "update": [IsAuthenticated, IsOwner],
+                   "partial_update": [IsAuthenticated, IsOwner],
+                   "destroy": [IsAuthenticated, IsOwner]
+                   }
+
+    default_serializer = SelectionSerializer
+    serializers = {"create": SelectionCreateSerializer}
+
+    def get_permissions(self):
+        return [permission() for permission in self.permissions.get(self.action, self.default_permission)]
+
+    def get_serializer_class(self):
+        return self.serializers.get(self.action, self.default_serializer)
